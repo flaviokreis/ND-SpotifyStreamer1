@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,8 +34,6 @@ import mobi.dende.nd.spotifystreamer.models.SimpleTrack;
  * Parser json from Spotify API using Spotify Web Api Android {see https://github.com/kaaes/spotify-web-api-android}
  */
 public class TopTracksFragment extends Fragment implements AdapterView.OnItemClickListener{
-
-    private static final String TAG = SearchArtistFragment.class.getSimpleName();
 
     private static final String EXTRA_TRACKS = "extra_tracks";
 
@@ -99,7 +96,6 @@ public class TopTracksFragment extends Fragment implements AdapterView.OnItemCli
         mAdapter.setArtists(tracks);
         mLoading.setVisibility(View.GONE);
         if( tracks == null || tracks.isEmpty() ){
-            Log.d(TAG, "No artist found.");
             mEmptyList.setVisibility(View.VISIBLE);
             Toast.makeText(getActivity(), R.string.no_tracks_found_message,
                     Toast.LENGTH_SHORT).show();

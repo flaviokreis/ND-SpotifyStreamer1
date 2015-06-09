@@ -2,8 +2,10 @@ package mobi.dende.nd.spotifystreamer.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
 import kaaes.spotify.webapi.android.models.Artist;
+import kaaes.spotify.webapi.android.models.Image;
 
 /**
  * Artist simplified obejct. Need implement Parcelable to save and restore list on Activity and Fragment.
@@ -17,8 +19,16 @@ public class SimpleArtist implements Parcelable {
         this.id = artist.id;
         this.name = artist.name;
         if( ( artist.images != null ) && ( ! artist.images.isEmpty() ) ){
-            //Get the image smaller image
-            this.imageUrl = artist.images.get(artist.images.size() - 1).url;
+            for(Image image : artist.images){
+                if( (image.width >= 150) && (image.width <= 250) ){ //200px +- 50px tolerance
+                    this.imageUrl = image.url;
+                    break;
+                }
+            }
+            //If not get image between 150px and 250px, get image with any size
+            if(TextUtils.isEmpty(this.imageUrl)){
+                this.imageUrl = artist.images.get(0).url;
+            }
         }
     }
 

@@ -2,7 +2,9 @@ package mobi.dende.nd.spotifystreamer.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
+import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 
 /**
@@ -15,6 +17,7 @@ public class SimpleTrack implements Parcelable {
     private String albumId;
     private String albumName;
     private String albumImageUrl;
+    private String albumSmallImageUrl;
 
     private String id;
     private String name;
@@ -28,6 +31,26 @@ public class SimpleTrack implements Parcelable {
         albumId = track.album.id;
         albumName = track.album.name;
         albumImageUrl = track.album.images.get(0).url;
+
+        if( ( track.album.images != null ) && ( ! track.album.images.isEmpty() ) ){
+            for(Image image : track.album.images){
+                if( (image.width >= 150) && (image.width <= 250) ){ //200px +- 50px tolerance
+                    this.albumSmallImageUrl = image.url;
+                }
+                else if( (image.width >= 600) && (image.width <= 700) ){ //Large image
+                    this.albumImageUrl = image.url;
+                }
+            }
+            //If not get image between 150px and 250px, get image with any size
+            if(TextUtils.isEmpty(this.albumSmallImageUrl)){
+                this.albumSmallImageUrl = track.album.images.get(0).url;
+            }
+
+            //If not get image between 600px and 700px, get image with any size
+            if(TextUtils.isEmpty(this.albumImageUrl)){
+                this.albumImageUrl = track.album.images.get(0).url;
+            }
+        }
 
         artistId = track.artists.get(0).id;
         artistName = track.artists.get(0).name;
@@ -71,6 +94,14 @@ public class SimpleTrack implements Parcelable {
 
     public void setAlbumImageUrl(String albumImageUrl) {
         this.albumImageUrl = albumImageUrl;
+    }
+
+    public String getAlbumSmallImageUrl() {
+        return albumSmallImageUrl;
+    }
+
+    public void setAlbumSmallImageUrl(String albumImageUrl) {
+        this.albumSmallImageUrl = albumImageUrl;
     }
 
     public String getId() {

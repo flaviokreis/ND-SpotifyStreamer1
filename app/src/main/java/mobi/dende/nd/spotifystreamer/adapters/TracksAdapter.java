@@ -83,7 +83,7 @@ public class TracksAdapter extends BaseAdapter {
         if( ! TextUtils.isEmpty(track.getAlbumImageUrl())  ){
             //Get the image smaller image
             Picasso.with(mContext)
-                    .load(track.getAlbumImageUrl())
+                    .load(track.getAlbumSmallImageUrl())
                     .into(viewHolder.image);
         }
 
