@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/frags">
+
+    <!-- "Fragment artists" -->
+    <fragment
+        android:id="@+id/artists"
+        android:name="mobi.dende.nd.spotifystreamer.SearchArtistFragment"
+        tools:layout="@layout/fragment_search_artist"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"/>
+
+    <!-- "Fragment top tracks" -->
+    <fragment
+        android:id="@+id/top_tracks"
+        android:name="mobi.dende.nd.spotifystreamer.TopTracksFragment"
+        tools:layout="@layout/fragment_search_artist"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="2"/>
+
+</LinearLayout>
