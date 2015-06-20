@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +20,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -26,6 +28,7 @@ import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 import mobi.dende.nd.spotifystreamer.adapters.ArtistAdapter;
 import mobi.dende.nd.spotifystreamer.models.SimpleArtist;
+import mobi.dende.nd.spotifystreamer.utils.NetworkUtils;
 
 
 /**
@@ -36,6 +39,8 @@ import mobi.dende.nd.spotifystreamer.models.SimpleArtist;
  */
 public class SearchArtistFragment extends Fragment implements EditText.OnEditorActionListener,
         OnItemClickListener{
+
+    private static final String TAG = SearchArtistFragment.class.getSimpleName();
 
     private EditText    mSearchEditText;
     private ListView    mListView;
@@ -117,10 +122,15 @@ public class SearchArtistFragment extends Fragment implements EditText.OnEditorA
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
             if( !TextUtils.isEmpty( mSearchEditText.getText() ) ){
-                new ArtistsTask().execute(mSearchEditText.getText().toString());
-                // On click search, hide keyboard
-                // Reference: http://stackoverflow.com/questions/1109022/close-hide-the-android-soft-keyboard
-                imm.hideSoftInputFromWindow(mSearchEditText.getWindowToken(), 0);
+                if(NetworkUtils.isNetworkAvailable(getActivity())){
+                    new ArtistsTask().execute(mSearchEditText.getText().toString());
+                    // On click search, hide keyboard
+                    // Reference: http://stackoverflow.com/questions/1109022/close-hide-the-android-soft-keyboard
+                    imm.hideSoftInputFromWindow(mSearchEditText.getWindowToken(), 0);
+                }
+                else{
+                    Toast.makeText(getActivity(), R.string.no_internet_found, Toast.LENGTH_LONG).show();
+                }
             }
             return true;
         }
@@ -152,7 +162,13 @@ public class SearchArtistFragment extends Fragment implements EditText.OnEditorA
 
         @Override
         protected ArrayList<SimpleArtist> doInBackground(String... params) {
-            mArtistsPager = new SpotifyApi().getService().searchArtists(params[0]);
+            try{
+                mArtistsPager = new SpotifyApi().getService().searchArtists(params[0]);
+            }
+            catch (Exception ex){
+                Log.e(TAG, "Error on try get artists, verify connection.", ex);
+            }
+
             if( ( mArtistsPager != null ) && ( ! mArtistsPager.artists.items.isEmpty() ) ){
                 ArrayList<SimpleArtist> list = new ArrayList<>();
                 //Convert Artist to SimpleArtist(Parcelable object)

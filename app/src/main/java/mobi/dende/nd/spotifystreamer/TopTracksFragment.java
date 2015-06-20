@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +26,7 @@ import kaaes.spotify.webapi.android.models.Tracks;
 import mobi.dende.nd.spotifystreamer.adapters.TracksAdapter;
 import mobi.dende.nd.spotifystreamer.models.SimpleArtist;
 import mobi.dende.nd.spotifystreamer.models.SimpleTrack;
+import mobi.dende.nd.spotifystreamer.utils.NetworkUtils;
 
 
 /**
@@ -34,6 +36,8 @@ import mobi.dende.nd.spotifystreamer.models.SimpleTrack;
  * Parser json from Spotify API using Spotify Web Api Android {see https://github.com/kaaes/spotify-web-api-android}
  */
 public class TopTracksFragment extends Fragment implements AdapterView.OnItemClickListener{
+
+    private static final String TAG = SearchArtistFragment.class.getSimpleName();
 
     private static final String EXTRA_TRACKS = "extra_tracks";
 
@@ -106,7 +110,13 @@ public class TopTracksFragment extends Fragment implements AdapterView.OnItemCli
     public void onStart() {
         super.onStart();
         if(mTracks == null){
-            new TopTracksTask().execute(mArtist.getId());
+            if(NetworkUtils.isNetworkAvailable(getActivity())){
+                new TopTracksTask().execute(mArtist.getId());
+            }
+            else{
+                Toast.makeText(getActivity(), R.string.no_internet_found, Toast.LENGTH_LONG).show();
+            }
+
         }
     }
 
@@ -134,7 +144,13 @@ public class TopTracksFragment extends Fragment implements AdapterView.OnItemCli
         protected ArrayList<SimpleTrack> doInBackground(String... params) {
             Map<String, Object> options = new HashMap<>();
             options.put(SpotifyService.COUNTRY, Locale.getDefault().getCountry());
-            Tracks tracks = new SpotifyApi().getService().getArtistTopTrack(params[0], options);
+            Tracks tracks = null;
+            try{
+                tracks = new SpotifyApi().getService().getArtistTopTrack(params[0], options);
+            }
+            catch (Exception ex){
+                Log.e(TAG, "Error on try get artists, verify connection.", ex);
+            }
             if( ( tracks != null ) && ( ! tracks.tracks.isEmpty() ) ){
                 ArrayList<SimpleTrack> list = new ArrayList<>();
                 //Convert Tracks to SimpleTracks(Parcelable object)
