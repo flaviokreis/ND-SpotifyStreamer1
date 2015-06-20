@@ -1,5 +1,6 @@
 package mobi.dende.nd.spotifystreamer;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -53,6 +54,24 @@ public class SearchArtistFragment extends Fragment implements EditText.OnEditorA
 
     private ArrayList<SimpleArtist> mArtists;
 
+    private OnSearchListener mListener;
+
+    public interface OnSearchListener{
+        void onInitSearch();
+        void onSelectedArtist(SimpleArtist artist);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (activity instanceof OnSearchListener) {
+            mListener = (OnSearchListener) activity;
+        } else {
+            throw new ClassCastException(activity.toString()
+                    + " must implemenet SearchArtistFragment.OnSelectedArtist");
+        }
+    }
+
     public SearchArtistFragment() {/* no code */ }
 
     @Override
@@ -100,7 +119,7 @@ public class SearchArtistFragment extends Fragment implements EditText.OnEditorA
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View layout = inflater.inflate(R.layout.fragment_seach_artist, container, false);
+        View layout = inflater.inflate(R.layout.fragment_search_artist, container, false);
 
         mSearchEditText = (EditText)layout.findViewById(R.id.search_edit_text);
         mListView       = (ListView) layout.findViewById(R.id.list_artist);
@@ -110,6 +129,10 @@ public class SearchArtistFragment extends Fragment implements EditText.OnEditorA
         mAdapter = new ArtistAdapter(getActivity());
         mListView.setAdapter(mAdapter);
         mListView.setOnItemClickListener(SearchArtistFragment.this);
+
+        //Set single line mode
+        //Reference: http://stackoverflow.com/questions/5925892/how-to-highlight-row-in-listview-in-android
+        mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
         mSearchEditText.setOnEditorActionListener(SearchArtistFragment.this);
 
@@ -127,6 +150,7 @@ public class SearchArtistFragment extends Fragment implements EditText.OnEditorA
                     // On click search, hide keyboard
                     // Reference: http://stackoverflow.com/questions/1109022/close-hide-the-android-soft-keyboard
                     imm.hideSoftInputFromWindow(mSearchEditText.getWindowToken(), 0);
+                    mListener.onInitSearch();
                 }
                 else{
                     Toast.makeText(getActivity(), R.string.no_internet_found, Toast.LENGTH_LONG).show();
@@ -141,11 +165,7 @@ public class SearchArtistFragment extends Fragment implements EditText.OnEditorA
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         SimpleArtist artist = mAdapter.getItem(position);
         if( artist != null ){
-            //Go to next screen, show the top tracks
-            Intent intent = new Intent( getActivity(), TopTracksActivity.class );
-            //Artist reference, in this case artist is parcelable object
-            intent.putExtra(TopTracksActivity.EXTRA_ARTIST, artist);
-            startActivity(intent);
+            mListener.onSelectedArtist(artist);
         }
     }
 

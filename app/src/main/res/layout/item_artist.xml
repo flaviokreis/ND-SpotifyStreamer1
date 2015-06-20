@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Set the min height using android:attr/listPreferredItemHeight
     Reference: http://stackoverflow.com/questions/4243894/android-listview-item-height -->
+<!-- Set background when select one item
+    Reference: http://stackoverflow.com/questions/5925892/how-to-highlight-row-in-listview-in-android -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,6 +10,7 @@
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:layout_gravity="center_vertical"
+    android:background="?android:attr/activatedBackgroundIndicator"
     android:padding="16dp">
 
     <ImageView

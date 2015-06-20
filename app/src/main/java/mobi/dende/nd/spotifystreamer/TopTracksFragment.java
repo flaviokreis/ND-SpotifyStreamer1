@@ -58,7 +58,9 @@ public class TopTracksFragment extends Fragment implements AdapterView.OnItemCli
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle extras = getActivity().getIntent().getExtras();
-        mArtist       = extras.getParcelable(TopTracksActivity.EXTRA_ARTIST);
+        if(extras != null){
+            mArtist = extras.getParcelable(TopTracksActivity.EXTRA_ARTIST);
+        }
     }
 
     @Override
@@ -109,15 +111,25 @@ public class TopTracksFragment extends Fragment implements AdapterView.OnItemCli
     @Override
     public void onStart() {
         super.onStart();
-        if(mTracks == null){
+        if(( mTracks == null) && (mArtist != null)){
             if(NetworkUtils.isNetworkAvailable(getActivity())){
                 new TopTracksTask().execute(mArtist.getId());
             }
             else{
                 Toast.makeText(getActivity(), R.string.no_internet_found, Toast.LENGTH_LONG).show();
             }
-
         }
+    }
+
+    public void clear(){
+        mArtist = null;
+        mTracks = null;
+        mAdapter.setArtists(mTracks);
+    }
+
+    public void setArtist(SimpleArtist artist){
+        mArtist = artist;
+        new TopTracksTask().execute(mArtist.getId());
     }
 
     @Override
