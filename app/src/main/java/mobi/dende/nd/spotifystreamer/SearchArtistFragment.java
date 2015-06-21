@@ -144,15 +144,14 @@ public class SearchArtistFragment extends Fragment implements EditText.OnEditorA
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-            if( !TextUtils.isEmpty( mSearchEditText.getText() ) ){
-                if(NetworkUtils.isNetworkAvailable(getActivity())){
+            if( !TextUtils.isEmpty( mSearchEditText.getText() ) ) {
+                if (NetworkUtils.isNetworkAvailable(getActivity())) {
                     new ArtistsTask().execute(mSearchEditText.getText().toString());
                     // On click search, hide keyboard
                     // Reference: http://stackoverflow.com/questions/1109022/close-hide-the-android-soft-keyboard
                     imm.hideSoftInputFromWindow(mSearchEditText.getWindowToken(), 0);
                     mListener.onInitSearch();
-                }
-                else{
+                } else {
                     Toast.makeText(getActivity(), R.string.no_internet_found, Toast.LENGTH_LONG).show();
                 }
             }
