@@ -4,23 +4,20 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.SearchView;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -37,12 +34,12 @@ import mobi.dende.nd.spotifystreamer.utils.NetworkUtils;
  *
  * Parser json from Spotify API using Spotify Web Api Android {see https://github.com/kaaes/spotify-web-api-android}
  */
-public class SearchArtistFragment extends Fragment implements EditText.OnEditorActionListener,
+public class SearchArtistFragment extends Fragment implements SearchView.OnQueryTextListener,
         OnItemClickListener{
 
     private static final String TAG = SearchArtistFragment.class.getSimpleName();
 
-    private EditText    mSearchEditText;
+    private SearchView  mSearchView;
     private ListView    mListView;
     private TextView    mEmptyList;
     private ProgressBar mLoading;
@@ -102,7 +99,7 @@ public class SearchArtistFragment extends Fragment implements EditText.OnEditorA
                              Bundle savedInstanceState) {
         View layout = inflater.inflate(R.layout.fragment_seach_artist, container, false);
 
-        mSearchEditText = (EditText)layout.findViewById(R.id.search_edit_text);
+        mSearchView     = (SearchView)layout.findViewById(R.id.search_artist);
         mListView       = (ListView) layout.findViewById(R.id.list_artist);
         mEmptyList      = (TextView) layout.findViewById(R.id.empty_list);
         mLoading        = (ProgressBar)layout.findViewById(R.id.loading);
@@ -111,30 +108,11 @@ public class SearchArtistFragment extends Fragment implements EditText.OnEditorA
         mListView.setAdapter(mAdapter);
         mListView.setOnItemClickListener(SearchArtistFragment.this);
 
-        mSearchEditText.setOnEditorActionListener(SearchArtistFragment.this);
+        mSearchView.setOnQueryTextListener(SearchArtistFragment.this);
 
         imm = (InputMethodManager)getActivity().getSystemService(getActivity().INPUT_METHOD_SERVICE);
 
         return layout;
-    }
-
-    @Override
-    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-            if( !TextUtils.isEmpty( mSearchEditText.getText() ) ){
-                if(NetworkUtils.isNetworkAvailable(getActivity())){
-                    new ArtistsTask().execute(mSearchEditText.getText().toString());
-                    // On click search, hide keyboard
-                    // Reference: http://stackoverflow.com/questions/1109022/close-hide-the-android-soft-keyboard
-                    imm.hideSoftInputFromWindow(mSearchEditText.getWindowToken(), 0);
-                }
-                else{
-                    Toast.makeText(getActivity(), R.string.no_internet_found, Toast.LENGTH_LONG).show();
-                }
-            }
-            return true;
-        }
-        return false;
     }
 
     @Override
@@ -147,6 +125,28 @@ public class SearchArtistFragment extends Fragment implements EditText.OnEditorA
             intent.putExtra(TopTracksActivity.EXTRA_ARTIST, artist);
             startActivity(intent);
         }
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String search) {
+        if( !TextUtils.isEmpty(search) ){
+            if(NetworkUtils.isNetworkAvailable(getActivity())){
+                new ArtistsTask().execute(search);
+                // On click search, hide keyboard
+                // Reference: http://stackoverflow.com/questions/7409288/how-to-dismiss-keyboard-in-android-searchview
+                mSearchView.clearFocus();
+            }
+            else{
+                Toast.makeText(getActivity(), R.string.no_internet_available, Toast.LENGTH_LONG).show();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String s) {
+        return false;
     }
 
     private class ArtistsTask extends AsyncTask<String, Void, ArrayList<SimpleArtist>>{

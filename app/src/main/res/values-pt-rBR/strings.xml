@@ -4,4 +4,5 @@
     <string name="no_artist_found_message">Nenhum artista encontrado</string>
     <string name="no_tracks_found_message">Nenhuma música encontrada</string>
     <string name="title_activity_top_tracks">Top 10 Músicas</string>
+    <string name="no_internet_available">Sem internet disponível</string>
 </resources>

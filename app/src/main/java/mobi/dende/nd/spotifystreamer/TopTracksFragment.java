@@ -27,6 +27,7 @@ import mobi.dende.nd.spotifystreamer.adapters.TracksAdapter;
 import mobi.dende.nd.spotifystreamer.models.SimpleArtist;
 import mobi.dende.nd.spotifystreamer.models.SimpleTrack;
 import mobi.dende.nd.spotifystreamer.utils.NetworkUtils;
+import retrofit.RetrofitError;
 
 
 /**
@@ -114,7 +115,7 @@ public class TopTracksFragment extends Fragment implements AdapterView.OnItemCli
                 new TopTracksTask().execute(mArtist.getId());
             }
             else{
-                Toast.makeText(getActivity(), R.string.no_internet_found, Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), R.string.no_internet_available, Toast.LENGTH_LONG).show();
             }
 
         }
@@ -148,8 +149,11 @@ public class TopTracksFragment extends Fragment implements AdapterView.OnItemCli
             try{
                 tracks = new SpotifyApi().getService().getArtistTopTrack(params[0], options);
             }
+            catch (RetrofitError rex){
+                Log.e(TAG, "Error on try get top tracks.", rex);
+            }
             catch (Exception ex){
-                Log.e(TAG, "Error on try get artists, verify connection.", ex);
+                Log.e(TAG, "Error on try get top tracks, verify connection.", ex);
             }
             if( ( tracks != null ) && ( ! tracks.tracks.isEmpty() ) ){
                 ArrayList<SimpleTrack> list = new ArrayList<>();
