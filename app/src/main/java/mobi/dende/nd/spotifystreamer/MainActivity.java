@@ -22,6 +22,7 @@ public class MainActivity extends ActionBarActivity implements SearchArtistFragm
     @Override
     public void onInitSearch() {
         if( topTracksFragment != null ){
+            getSupportActionBar().setSubtitle(null);
             topTracksFragment.clear();
         }
     }
