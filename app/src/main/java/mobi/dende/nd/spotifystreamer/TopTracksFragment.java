@@ -1,5 +1,6 @@
 package mobi.dende.nd.spotifystreamer;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -52,8 +53,24 @@ public class TopTracksFragment extends Fragment implements AdapterView.OnItemCli
 
     private ArrayList<SimpleTrack> mTracks;
 
-    public TopTracksFragment() {
+    private OnTopTrackListener mListener;
+
+    public interface OnTopTrackListener {
+        void onTrackSelected(SimpleTrack track);
     }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (activity instanceof OnTopTrackListener) {
+            mListener = (OnTopTrackListener) activity;
+        } else {
+            throw new ClassCastException(activity.toString()
+                    + " must implemenet SearchArtistFragment.OnSelectedArtist");
+        }
+    }
+
+    public TopTracksFragment() {/* no code */}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -136,12 +153,7 @@ public class TopTracksFragment extends Fragment implements AdapterView.OnItemCli
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         SimpleTrack track = mAdapter.getItem(position);
-        if(track != null){
-            Intent intent = new Intent(getActivity(), TrackActivity.class);
-            intent.putExtra(TrackActivity.EXTRA_TRACK, track);
-
-            startActivity(intent);
-        }
+        mListener.onTrackSelected(track);
     }
 
     private class TopTracksTask extends AsyncTask<String, Void, ArrayList<SimpleTrack>> {
