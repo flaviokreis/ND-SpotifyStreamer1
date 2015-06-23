@@ -60,27 +60,36 @@
         android:layout_height="64dp"
         android:layout_marginTop="8dp">
 
-        <Button
+        <ImageButton
             android:id="@+id/track_previous"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:enabled="false"
-            android:text="Prev"/>
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:src="@android:drawable/ic_media_previous"
+            android:contentDescription="@string/previous_content_descripition"/>
 
-        <Button
+        <ImageButton
             android:id="@+id/track_play"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_centerInParent="true"
-            android:text="Play"/>
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:src="@android:drawable/ic_media_play"
+            android:contentDescription="@string/play_and_pause_content_description"/>
 
-        <Button
+        <ImageButton
             android:id="@+id/track_next"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"
             android:enabled="false"
-            android:text="Next"/>
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:src="@android:drawable/ic_media_next"
+            android:contentDescription="@string/next_content_description"/>
 
     </RelativeLayout>
 

@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -37,9 +38,9 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
     private TextView mTrackActualTime;
     private TextView mTrackTime;
 
-    private Button mTrackPrevious;
-    private Button mTrackPlay;
-    private Button mTrackNext;
+    private ImageButton mTrackPrevious;
+    private ImageButton mTrackPlay;
+    private ImageButton mTrackNext;
 
     private MediaPlayer mMediaPlayer;
 
@@ -62,9 +63,9 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
         mTrackActualTime = (TextView)layout.findViewById(R.id.track_actual_time);
         mTrackTime = (TextView)layout.findViewById(R.id.track_time);
 
-        mTrackPrevious = (Button)layout.findViewById(R.id.track_previous);
-        mTrackPlay = (Button)layout.findViewById(R.id.track_play);
-        mTrackNext = (Button)layout.findViewById(R.id.track_next);
+        mTrackPrevious = (ImageButton)layout.findViewById(R.id.track_previous);
+        mTrackPlay = (ImageButton)layout.findViewById(R.id.track_play);
+        mTrackNext = (ImageButton)layout.findViewById(R.id.track_next);
 
         mTrackPrevious.setOnClickListener(this);
         mTrackPlay.setOnClickListener(this);
@@ -130,9 +131,11 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
 
                 if(mMediaPlayer.isPlaying()){
                     mMediaPlayer.pause();
+                    mTrackPlay.setImageResource(android.R.drawable.ic_media_play);
                 }
                 else{
                     mMediaPlayer.start();
+                    mTrackPlay.setImageResource(android.R.drawable.ic_media_pause);
                 }
                 break;
         }
