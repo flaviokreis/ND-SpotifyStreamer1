@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
@@ -12,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -22,6 +20,7 @@ import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 import mobi.dende.nd.spotifystreamer.models.SimpleTrack;
 
@@ -31,9 +30,10 @@ import mobi.dende.nd.spotifystreamer.models.SimpleTrack;
  * For now, only show and play, not change music and not show or change progress of music.
  */
 public class TrackFragment extends DialogFragment implements View.OnClickListener,
-        MediaPlayer.OnPreparedListener, SeekBar.OnSeekBarChangeListener {
+        MediaPlayer.OnPreparedListener, SeekBar.OnSeekBarChangeListener, MediaPlayer.OnCompletionListener {
 
-    public static final String EXTRA_TRACK = "extra_track";
+    public static final String EXTRA_TRACKS             = "extra_tracks";
+    public static final String EXTRA_SELECTED_POSITION  = "actual_position";
 
     private TextView  mArtistName;
     private TextView  mAlbumName;
@@ -53,6 +53,8 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
 
     private MediaPlayer mMediaPlayer;
 
+    private List<SimpleTrack> mTracks;
+    private int mActualPosition;
     private SimpleTrack mTrack;
 
     private Handler durationHandler = new Handler();
@@ -68,6 +70,7 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
             mMediaPlayer  = new MediaPlayer();
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mMediaPlayer.setOnPreparedListener(TrackFragment.this);
+            mMediaPlayer.setOnCompletionListener(TrackFragment.this);
         }
     }
 
@@ -100,19 +103,29 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
         mTrackProgress.setOnSeekBarChangeListener(this);
 
         if(getArguments() != null){
-            setTrack((SimpleTrack)getArguments().getParcelable(EXTRA_TRACK));
+            mTracks         = getArguments().getParcelableArrayList(EXTRA_TRACKS);
+            mActualPosition = getArguments().getInt(EXTRA_SELECTED_POSITION, 0);
         }
         else if(getActivity().getIntent().getExtras() != null){
-            setTrack((SimpleTrack)getActivity().getIntent().getExtras().getParcelable(EXTRA_TRACK));
+            mTracks = getActivity().getIntent().getExtras().getParcelableArrayList(EXTRA_TRACKS);
+            mActualPosition = getActivity().getIntent().getExtras().getInt(EXTRA_SELECTED_POSITION);
         }
+
+        changeLayout();
 
         return layout;
     }
 
-    public void setTrack(SimpleTrack track){
-        mTrack = track;
+    public void changeLayout(){
+        mTrack = mTracks.get(mActualPosition);
 
-        prepareMusic(mTrack.getPreviewUrl());
+        mTrackPrevious.setEnabled(mActualPosition != 0);
+        mTrackPlay.setEnabled(false);
+        mTrackNext.setEnabled(mActualPosition != ( mTracks.size() - 1 ));
+        mTrackProgress.setEnabled(false);
+
+        mTrackActualTime.setText("");
+        mTrackTime.setText("");
 
         mArtistName.setText(mTrack.getArtistName());
         mAlbumName.setText(mTrack.getAlbumName());
@@ -123,11 +136,16 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
         }
         mTrackName.setText(mTrack.getName());
 
-        mTrackActualTime.setText("00:00");
-        mTrackTime.setText("00:30");
+        prepareMusic(mTrack.getPreviewUrl());
     }
 
     private void prepareMusic(String previewUrl){
+        if(mMediaPlayer.isPlaying()){
+            mMediaPlayer.stop();
+        }
+
+        mMediaPlayer.reset();
+
         try {
             mMediaPlayer.setDataSource(previewUrl);
             mMediaPlayer.prepareAsync();
@@ -136,7 +154,7 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
         }
     }
 
-//    http://developer.android.com/guide/topics/ui/dialogs.html
+    //Reference: http://developer.android.com/guide/topics/ui/dialogs.html
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
@@ -158,8 +176,13 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.track_previous:
+                if(mActualPosition > 0){
+                    mActualPosition--;
+                    changeLayout();
+                }
                 break;
             case R.id.track_next:
+                playNext();
                 break;
             case R.id.track_play:
                 playAndPause();
@@ -167,6 +190,7 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
         }
     }
 
+    //Reference: http://www.tutorialspoint.com/android/android_mediaplayer.htm
     @Override
     public void onPrepared(MediaPlayer mp) {
         finalTime = mMediaPlayer.getDuration();
@@ -176,6 +200,7 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
                 TimeUnit.MILLISECONDS.toSeconds((long) finalTime) -
                 TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) finalTime))));
         mTrackPlay.setEnabled(true);
+        mTrackProgress.setEnabled(true);
         playAndPause();
     }
 
@@ -193,16 +218,24 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
         }
     }
 
+    private void playNext(){
+        if(mActualPosition < (mTracks.size() - 1)){
+            mActualPosition++;
+            changeLayout();
+        }
+    }
+
+    //Reference http://www.tutorialspoint.com/android/android_mediaplayer.htm
     private Runnable updateSeekBarTime = new Runnable() {
         @Override
         public void run() {
-            timeElapsed = mMediaPlayer.getCurrentPosition();
-            mTrackProgress.setProgress((int) timeElapsed);
-            mTrackActualTime.setText(String.format("%02d:%02d",
-                    TimeUnit.MILLISECONDS.toMinutes((long) timeElapsed),
-                    TimeUnit.MILLISECONDS.toSeconds((long) timeElapsed) -
-                            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) timeElapsed))));
             if(mMediaPlayer.isPlaying()){
+                timeElapsed = mMediaPlayer.getCurrentPosition();
+                mTrackProgress.setProgress((int) timeElapsed);
+                mTrackActualTime.setText(String.format("%02d:%02d",
+                        TimeUnit.MILLISECONDS.toMinutes((long) timeElapsed),
+                        TimeUnit.MILLISECONDS.toSeconds((long) timeElapsed) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) timeElapsed))));
                 durationHandler.postDelayed(this, 100);
             }
         }
@@ -225,4 +258,9 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) { /* no code */ }
+
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+        playNext();
+    }
 }

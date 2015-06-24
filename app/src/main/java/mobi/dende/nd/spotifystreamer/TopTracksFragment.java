@@ -56,7 +56,7 @@ public class TopTracksFragment extends Fragment implements AdapterView.OnItemCli
     private OnTopTrackListener mListener;
 
     public interface OnTopTrackListener {
-        void onTrackSelected(SimpleTrack track);
+        void onTrackSelected(int position, ArrayList<SimpleTrack> tracks);
     }
 
     @Override
@@ -152,8 +152,7 @@ public class TopTracksFragment extends Fragment implements AdapterView.OnItemCli
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        SimpleTrack track = mAdapter.getItem(position);
-        mListener.onTrackSelected(track);
+        mListener.onTrackSelected(position, mTracks);
     }
 
     private class TopTracksTask extends AsyncTask<String, Void, ArrayList<SimpleTrack>> {

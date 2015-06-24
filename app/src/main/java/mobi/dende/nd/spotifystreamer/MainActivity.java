@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 
+import java.util.ArrayList;
+
 import mobi.dende.nd.spotifystreamer.models.SimpleArtist;
 import mobi.dende.nd.spotifystreamer.models.SimpleTrack;
 
@@ -49,17 +51,16 @@ public class MainActivity extends ActionBarActivity implements SearchArtistFragm
 
     //Call this method only on tablet
     @Override
-    public void onTrackSelected(SimpleTrack track) {
-        if(track != null){
-            FragmentManager fragmentManager = getFragmentManager();
-            TrackFragment trackFragment = new TrackFragment();
+    public void onTrackSelected(int position, ArrayList<SimpleTrack> tracks) {
+        FragmentManager fragmentManager = getFragmentManager();
+        TrackFragment trackFragment = new TrackFragment();
 
-            Bundle bundle = new Bundle();
-            bundle.putParcelable(TrackFragment.EXTRA_TRACK, track);
-            trackFragment.setArguments(bundle);
+        Bundle bundle = new Bundle();
+        bundle.putInt(TrackFragment.EXTRA_SELECTED_POSITION, position);
+        bundle.putParcelableArrayList(TrackFragment.EXTRA_TRACKS, tracks);
+        trackFragment.setArguments(bundle);
 
-            // The device is using a large layout, so show the fragment as a dialog
-            trackFragment.show(fragmentManager, "dialog");
-        }
+        // The device is using a large layout, so show the fragment as a dialog
+        trackFragment.show(fragmentManager, "dialog");
     }
 }
