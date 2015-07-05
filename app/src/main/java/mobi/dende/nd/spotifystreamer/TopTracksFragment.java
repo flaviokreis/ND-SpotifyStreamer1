@@ -1,10 +1,9 @@
 package mobi.dende.nd.spotifystreamer;
 
 import android.app.Activity;
-import android.content.Intent;
+import android.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,6 +40,8 @@ public class TopTracksFragment extends Fragment implements AdapterView.OnItemCli
 
     private static final String TAG = SearchArtistFragment.class.getSimpleName();
 
+    public static final String EXTRA_ARTIST = "extra_artist";
+
     private static final String EXTRA_TRACKS = "extra_tracks";
 
     private SimpleArtist mArtist;
@@ -59,6 +60,19 @@ public class TopTracksFragment extends Fragment implements AdapterView.OnItemCli
         void onTrackSelected(int position, ArrayList<SimpleTrack> tracks);
     }
 
+    public static TopTracksFragment getInstance(SimpleArtist artist){
+        TopTracksFragment topTracksFragment = new TopTracksFragment();
+
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(EXTRA_ARTIST, artist);
+
+        topTracksFragment.setArguments(bundle);
+
+        return topTracksFragment;
+    }
+
+    public TopTracksFragment() {/* no code */}
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -70,20 +84,14 @@ public class TopTracksFragment extends Fragment implements AdapterView.OnItemCli
         }
     }
 
-    public TopTracksFragment() {/* no code */}
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Bundle extras = getActivity().getIntent().getExtras();
-        if(extras != null){
-            mArtist = extras.getParcelable(TopTracksActivity.EXTRA_ARTIST);
-        }
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        if(getArguments() != null){
+            mArtist = getArguments().getParcelable(EXTRA_ARTIST);
+        }
+
         View layout = inflater.inflate(R.layout.fragment_top_tracks, container, false);
 
         mListView   = (ListView) layout.findViewById(R.id.list_tracks);

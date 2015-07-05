@@ -19,8 +19,9 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import mobi.dende.nd.spotifystreamer.models.SimpleTrack;
 
@@ -59,9 +60,19 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
 
     private Handler durationHandler = new Handler();
 
+    public static TrackFragment getInstance(int position, ArrayList<SimpleTrack> tracks){
+        TrackFragment trackFragment = new TrackFragment();
 
-    public TrackFragment() {
+        Bundle bundle = new Bundle();
+        bundle.putInt(EXTRA_SELECTED_POSITION, position);
+        bundle.putParcelableArrayList(EXTRA_TRACKS, tracks);
+
+        trackFragment.setArguments(bundle);
+
+        return trackFragment;
     }
+
+    public TrackFragment() { /* no code */ }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -229,7 +240,7 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
     private Runnable updateSeekBarTime = new Runnable() {
         @Override
         public void run() {
-            if(mMediaPlayer.isPlaying()){
+            if((mMediaPlayer != null) && mMediaPlayer.isPlaying()){
                 timeElapsed = mMediaPlayer.getCurrentPosition();
                 mTrackProgress.setProgress((int) timeElapsed);
                 mTrackActualTime.setText(String.format("%02d:%02d",

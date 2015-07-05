@@ -21,7 +21,8 @@
         android:id="@+id/list_artist"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/search_artist"/>
+        android:layout_below="@id/search_artist"
+        style="@style/searchList"/>
 
     <ProgressBar
         android:id="@+id/loading"

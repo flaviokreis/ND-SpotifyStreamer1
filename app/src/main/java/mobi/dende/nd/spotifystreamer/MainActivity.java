@@ -1,8 +1,6 @@
 package mobi.dende.nd.spotifystreamer;
 
 import android.app.FragmentManager;
-import android.app.FragmentTransaction;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 
@@ -21,8 +19,8 @@ public class MainActivity extends ActionBarActivity implements SearchArtistFragm
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        topTracksFragment = (TopTracksFragment)getSupportFragmentManager().findFragmentById(R.id.top_tracks);
+        
+        topTracksFragment = (TopTracksFragment)getFragmentManager().findFragmentById(R.id.top_tracks);
     }
 
     @Override
@@ -41,10 +39,7 @@ public class MainActivity extends ActionBarActivity implements SearchArtistFragm
         }
         else{
             //Go to next screen, show the top tracks
-            Intent intent = new Intent( MainActivity.this, TopTracksActivity.class );
-            //Artist reference, in this case artist is parcelable object
-            intent.putExtra(TopTracksActivity.EXTRA_ARTIST, artist);
-            startActivity(intent);
+            startActivity(TopTracksActivity.getIntent(MainActivity.this, artist));
         }
 
     }
@@ -53,13 +48,7 @@ public class MainActivity extends ActionBarActivity implements SearchArtistFragm
     @Override
     public void onTrackSelected(int position, ArrayList<SimpleTrack> tracks) {
         FragmentManager fragmentManager = getFragmentManager();
-        TrackFragment trackFragment = new TrackFragment();
-
-        Bundle bundle = new Bundle();
-        bundle.putInt(TrackFragment.EXTRA_SELECTED_POSITION, position);
-        bundle.putParcelableArrayList(TrackFragment.EXTRA_TRACKS, tracks);
-        trackFragment.setArguments(bundle);
-
+        TrackFragment trackFragment = TrackFragment.getInstance(position, tracks);
         // The device is using a large layout, so show the fragment as a dialog
         trackFragment.show(fragmentManager, "dialog");
     }

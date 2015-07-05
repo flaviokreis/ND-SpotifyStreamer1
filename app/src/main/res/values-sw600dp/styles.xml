@@ -1,0 +1,9 @@
+<resources>
+
+    <style name="searchList">
+        <!--Set single line mode
+        Reference: http://stackoverflow.com/questions/5925892/how-to-highlight-row-in-listview-in-android -->
+        <item name="android:choiceMode">singleChoice</item>
+    </style>
+
+</resources>

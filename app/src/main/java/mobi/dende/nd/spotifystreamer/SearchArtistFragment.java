@@ -122,10 +122,6 @@ public class SearchArtistFragment extends Fragment implements SearchView.OnQuery
         mListView.setAdapter(mAdapter);
         mListView.setOnItemClickListener(SearchArtistFragment.this);
 
-        //Set single line mode
-        //Reference: http://stackoverflow.com/questions/5925892/how-to-highlight-row-in-listview-in-android
-        mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-
         mSearchView.setOnQueryTextListener(SearchArtistFragment.this);
 
         return layout;
