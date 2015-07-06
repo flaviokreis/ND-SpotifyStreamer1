@@ -2,14 +2,23 @@ package mobi.dende.nd.spotifystreamer;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.NotificationCompat;
 import android.support.v7.widget.ShareActionProvider;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,6 +32,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,6 +51,13 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
 
     public static final String EXTRA_TRACKS             = "extra_tracks";
     public static final String EXTRA_SELECTED_POSITION  = "actual_position";
+
+    private static final int TRACK_NOTIFICATION_ID = 501;
+
+    private static final String ACTION_PREVIOUS = "mobi.dende.nd.spotifystreamer.ACTION_PREVIOUS";
+    private static final String ACTION_PLAY     = "mobi.dende.nd.spotifystreamer.ACTION_PLAY";
+    private static final String ACTION_PAUSE    = "mobi.dende.nd.spotifystreamer.ACTION_STOP";
+    private static final String ACTION_NEXT     = "mobi.dende.nd.spotifystreamer.ACTION_NEXT";
 
     private TextView  mArtistName;
     private TextView  mAlbumName;
@@ -68,6 +85,27 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
 
     private Handler durationHandler = new Handler();
 
+    BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            switch (action){
+                case ACTION_PREVIOUS:
+                    playPrevious();
+                    break;
+                case ACTION_PLAY:
+                    playAndPause();
+                    break;
+                case ACTION_PAUSE:
+                    playAndPause();
+                    break;
+                case ACTION_NEXT:
+                    playNext();
+                    break;
+            }
+        }
+    };
+
     public static TrackFragment getInstance(int position, ArrayList<SimpleTrack> tracks){
         TrackFragment trackFragment = new TrackFragment();
 
@@ -86,6 +124,10 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        getActivity().registerReceiver(mReceiver, new IntentFilter(ACTION_PREVIOUS));
+        getActivity().registerReceiver(mReceiver, new IntentFilter(ACTION_PLAY));
+        getActivity().registerReceiver(mReceiver, new IntentFilter(ACTION_PAUSE));
+        getActivity().registerReceiver(mReceiver, new IntentFilter(ACTION_NEXT));
         if(mMediaPlayer == null){
             mMediaPlayer  = new MediaPlayer();
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -211,16 +253,16 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
             mMediaPlayer.release();
             mMediaPlayer = null;
         }
+        NotificationManager mNotificationManager =
+                (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.cancel(TRACK_NOTIFICATION_ID);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.track_previous:
-                if(mActualPosition > 0){
-                    mActualPosition--;
-                    changeLayout();
-                }
+                playPrevious();
                 break;
             case R.id.track_next:
                 playNext();
@@ -256,6 +298,14 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
             timeElapsed = mMediaPlayer.getCurrentPosition();
             mTrackProgress.setProgress((int) timeElapsed);
             durationHandler.postDelayed(updateSeekBarTime, 100);
+        }
+        createNotification();
+    }
+
+    private void playPrevious(){
+        if(mActualPosition > 0){
+            mActualPosition--;
+            changeLayout();
         }
     }
 
@@ -323,5 +373,49 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
             // Now update the ShareActionProvider with the new share intent
             mShareActionProvider.setShareIntent(sendIntent);
         }
+    }
+
+    public void createNotification(){
+        NotificationCompat.MediaStyle mediaStyle = new NotificationCompat.MediaStyle();
+        final NotificationCompat.Builder mBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(getActivity())
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setSmallIcon(android.R.drawable.ic_media_play)
+                .setStyle(mediaStyle)
+                .addAction(generateAction(android.R.drawable.ic_media_previous, "Previous", ACTION_PREVIOUS));
+        if(mMediaPlayer.isPlaying()){
+            mBuilder.addAction(generateAction(android.R.drawable.ic_media_pause, "Pause", ACTION_PAUSE));
+        } else {
+            mBuilder.addAction(generateAction(android.R.drawable.ic_media_play, "Play", ACTION_PLAY));
+        }
+        mBuilder.addAction(generateAction(android.R.drawable.ic_media_next, "Next", ACTION_NEXT))
+                .setContentTitle(mTrack.getName())
+                .setContentText(mTrack.getArtistName() + "\n" + mTrack.getAlbumName());
+
+        Picasso.with(getActivity()).load(mTrack.getAlbumImageUrl()).into(new Target() {
+            @Override
+            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                mBuilder.setLargeIcon(bitmap);
+                NotificationManager mNotificationManager =
+                        (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+                mNotificationManager.notify(TRACK_NOTIFICATION_ID, mBuilder.build());
+            }
+
+            @Override
+            public void onBitmapFailed(Drawable errorDrawable) {
+                NotificationManager mNotificationManager =
+                        (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+                mNotificationManager.notify(TRACK_NOTIFICATION_ID, mBuilder.build());
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable) { /* no code */ }
+        });
+    }
+
+    private NotificationCompat.Action generateAction( int icon, String title, String intentAction ) {
+        Intent intent = new Intent( intentAction );
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity().getApplicationContext(),
+                201, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        return new NotificationCompat.Action.Builder(icon, title, pendingIntent).build();
     }
 }
