@@ -2,12 +2,18 @@ package mobi.dende.nd.spotifystreamer;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.ShareActionProvider;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -49,6 +55,8 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
     private ImageButton mTrackPlay;
     private ImageButton mTrackNext;
 
+    private ShareActionProvider mShareActionProvider;
+
     private double timeElapsed = 0;
     private double finalTime   = 0;
 
@@ -77,6 +85,7 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         if(mMediaPlayer == null){
             mMediaPlayer  = new MediaPlayer();
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -127,6 +136,22 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
         return layout;
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_track, menu);
+
+        // Retrieve the share menu item
+        MenuItem shareItem = menu.findItem(R.id.menu_item_share);
+
+        // Now get the ShareActionProvider from the item
+
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
+
+        if(mTrack != null){
+            setShareIntent();
+        }
+    }
+
     public void changeLayout(){
         mTrack = mTracks.get(mActualPosition);
 
@@ -148,6 +173,11 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
         mTrackName.setText(mTrack.getName());
 
         prepareMusic(mTrack.getPreviewUrl());
+
+        // If onCreateOptionsMenu has already happened, we need to update the share intent now.
+        if (mShareActionProvider != null) {
+            setShareIntent();
+        }
     }
 
     private void prepareMusic(String previewUrl){
@@ -273,5 +303,25 @@ public class TrackFragment extends DialogFragment implements View.OnClickListene
     @Override
     public void onCompletion(MediaPlayer mp) {
         playNext();
+    }
+
+    private void setShareIntent() {
+        if (mShareActionProvider != null) {
+            Intent sendIntent = new Intent(Intent.ACTION_SEND);
+            sendIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+
+            sendIntent.setType("text/plain");
+
+            String url = mTrack.getArtistUrl();
+            if(TextUtils.isEmpty(url)){
+                url = mTrack.getAlbumImageUrl();
+            }
+
+            sendIntent.putExtra(Intent.EXTRA_TEXT, "Playing: " + mTrack.getName() +
+                    " - " + mTrack.getArtistName() + "\n" + url);
+
+            // Now update the ShareActionProvider with the new share intent
+            mShareActionProvider.setShareIntent(sendIntent);
+        }
     }
 }

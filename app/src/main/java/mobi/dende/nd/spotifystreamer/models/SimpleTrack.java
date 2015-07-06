@@ -3,6 +3,7 @@ package mobi.dende.nd.spotifystreamer.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
@@ -13,6 +14,7 @@ import kaaes.spotify.webapi.android.models.Track;
 public class SimpleTrack implements Parcelable {
     private String artistId;
     private String artistName;
+    private String artistUrl;
 
     private String albumId;
     private String albumName;
@@ -54,6 +56,10 @@ public class SimpleTrack implements Parcelable {
 
         artistId = track.artists.get(0).id;
         artistName = track.artists.get(0).name;
+        if( ( track.artists.get(0).external_urls != null ) && ( ! track.artists.get(0).external_urls.isEmpty() ) ){
+            this.artistUrl = track.artists.get(0).external_urls.get("spotify");
+            Log.d("SimpleTrack", "Url: " + this.artistUrl);
+        }
     }
 
     public String getArtistId() {
@@ -70,6 +76,14 @@ public class SimpleTrack implements Parcelable {
 
     public void setArtistName(String artistName) {
         this.artistName = artistName;
+    }
+
+    public String getArtistUrl(){
+        return artistUrl;
+    }
+
+    public void setArtistUrl(String artistUrl){
+        this.artistUrl = artistUrl;
     }
 
     public String getAlbumId() {
@@ -131,6 +145,7 @@ public class SimpleTrack implements Parcelable {
     protected SimpleTrack(Parcel in) {
         artistId = in.readString();
         artistName = in.readString();
+        artistUrl = in.readString();
         albumId = in.readString();
         albumName = in.readString();
         albumImageUrl = in.readString();
@@ -148,6 +163,7 @@ public class SimpleTrack implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(artistId);
         dest.writeString(artistName);
+        dest.writeString(artistUrl);
         dest.writeString(albumId);
         dest.writeString(albumName);
         dest.writeString(albumImageUrl);
